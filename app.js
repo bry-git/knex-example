@@ -3,18 +3,27 @@ const express = require('express');
 var bodyParser = require('body-parser')
 const app = express();
 const PORT = process.env.PORT || 3000;
-const knex = require('knex')(require('./knexfile')[process.env.NODE_ENV]);
+
+const knex = require('knex')({
+    client: 'pg',
+    connection: {
+      host : '127.0.0.1',
+      user : 'admin',
+      password : 'password',
+      database : 'postgres'
+    }
+})
 
 app.use(bodyParser.json());
 
-// app.use((req, res, next) => {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-//   });
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
 
-app.get('/movies', function(req, res) {
+app.get('/movies', (req, res) => {
   knex
     .select('*')
     .from('movies')
@@ -26,6 +35,16 @@ app.get('/movies', function(req, res) {
       })
     );
 });
+
+app.post('/movies', (req, res) => {
+    knex('movies')
+         .insert(req.body)
+         .then(() => res.send(200))
+         .catch(err =>
+            res.status(500))       
+})
+
+
 
 app.listen(PORT, () => {
   console.log(`The server is running on ${PORT}`);
